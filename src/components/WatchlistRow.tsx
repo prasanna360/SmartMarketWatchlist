@@ -29,7 +29,7 @@ export function WatchlistRow({ item, onAck, onRemove, acking, removing }: Props)
   const signalReason = item.volume_spike ? 'volume spike' : item.source2_disagree ? 'source check' : 'outside baseline';
 
   return (
-    <div className={`group relative border-b border-subtle px-4 py-4 transition-colors last:border-b-0 hover:bg-tertiary/30 sm:px-5 ${item.is_meaningful ? 'pulse-meaningful bg-[var(--accent)]/[0.035]' : ''}`}>
+    <div className={`group relative border-b border-subtle px-4 py-4 transition-colors last:border-b-0 hover:bg-white/[0.03] sm:px-5 ${item.is_meaningful ? 'pulse-meaningful bg-[var(--accent)]/[0.045]' : ''}`}>
       <div className="flex items-center gap-3 sm:gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">

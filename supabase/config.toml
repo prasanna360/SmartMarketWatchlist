@@ -1,0 +1,2 @@
+[functions.smart-market-api]
+verify_jwt = false

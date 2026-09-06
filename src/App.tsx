@@ -87,15 +87,21 @@ export default function App() {
   const topMover = items[0];
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
-      <header className="sticky top-0 z-40 border-b border-default bg-[var(--bg-primary)]/90 backdrop-blur-xl">
+    <div className="relative min-h-screen text-[var(--text-primary)]">
+      <div className="aurora-field" aria-hidden="true">
+        <div className="aurora-blob aurora-blob--one" />
+        <div className="aurora-blob aurora-blob--two" />
+        <div className="aurora-blob aurora-blob--three" />
+      </div>
+
+      <header className="sticky top-0 z-40 glass border-x-0 border-t-0">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--accent)]/10 text-accent ring-1 ring-[var(--accent)]/25">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-accent ring-1 ring-[var(--accent)]/25">
               <TrendingUp size={19} strokeWidth={2.5} />
             </div>
             <div>
-              <h1 className="text-sm font-bold tracking-[0.16em] text-[var(--text-primary)]">SMART MARKET WATCH</h1>
+              <h1 className="font-display text-sm font-semibold tracking-[0.1em] text-[var(--text-primary)]">Smart Market Watch</h1>
               <p className="mt-0.5 text-[10px] uppercase tracking-[0.2em] text-muted">Signal over noise</p>
             </div>
           </div>
@@ -106,35 +112,42 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-9">
-        <section className="mb-7 grid gap-7 lg:grid-cols-[1fr_360px] lg:items-end">
-          <div>
+      <main className="relative z-10 mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-9">
+        {/* Bento row 1: hero + scoring explainer */}
+        <section className="mb-4 grid grid-cols-12 gap-4">
+          <div className="tile-in glass col-span-12 rounded-3xl p-6 sm:p-8 lg:col-span-8" style={{ animationDelay: '0ms' }}>
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">Your attention queue</p>
-            <h2 className="max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.04em] text-[var(--text-primary)] sm:text-4xl">
-              Know what changed<br className="hidden sm:block" /> before you scan the market.
+            <h2 className="font-display max-w-xl text-3xl font-semibold leading-[1.15] tracking-tight text-[var(--text-primary)] sm:text-4xl">
+              Know what changed before you scan the market.
             </h2>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-secondary">
+            <p className="mt-4 max-w-lg text-sm leading-6 text-secondary">
               We compare each move to that symbol&apos;s normal behavior, then surface the changes most likely to deserve your attention.
             </p>
           </div>
-          <div className="rounded-xl border border-default bg-secondary/60 p-4 shadow-2xl shadow-black/10">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-muted"><Info size={13} className="text-accent" />How scoring works</span>
+          <div className="tile-in glass col-span-12 flex flex-col justify-between rounded-3xl p-6 lg:col-span-4" style={{ animationDelay: '60ms' }}>
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-muted"><Info size={13} className="text-accent" />How scoring works</span>
+              </div>
+              <p className="text-xs leading-5 text-secondary">A meaningful flag means the move is statistically unusual for that stock, not simply large in isolation.</p>
+            </div>
+            <div className="mt-5 flex items-center justify-between rounded-2xl bg-white/[0.03] px-3 py-2.5">
+              <span className="flex items-center gap-1.5 text-[10px] text-muted"><span className="legend-line" />vs. personal baseline</span>
               <span className="font-mono-num text-xs text-accent">z ≥ {MEANINGFUL_THRESHOLD.toFixed(1)}</span>
             </div>
-            <p className="text-xs leading-5 text-secondary">A meaningful flag means the move is statistically unusual for that stock, not simply large in isolation.</p>
-            <div className="mt-3 flex items-center gap-2 text-[10px] text-muted"><span className="legend-line" />Move vs. personal baseline <span className="ml-auto">+ volume / source checks</span></div>
           </div>
         </section>
 
-        <section className="mb-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <SummaryCard label="Watching" value={items.length.toString()} detail="symbols in queue" icon={<Eye size={15} />} />
-          <SummaryCard label="Needs attention" value={meaningfulCount.toString()} detail="unusual moves" icon={<Activity size={15} />} tone="accent" />
-          <SummaryCard label="Market direction" value={items.length ? `${upCount}/${items.length}` : '—'} detail="symbols moving up" icon={upCount >= items.length / 2 ? <ArrowUpRight size={15} /> : <ArrowDownRight size={15} />} tone={upCount >= items.length / 2 ? 'positive' : 'negative'} />
-          <SummaryCard label="Data quality" value={staleCount + conflictCount > 0 ? `${staleCount + conflictCount}` : 'Clear'} detail={staleCount + conflictCount > 0 ? 'items to review' : 'all feeds healthy'} icon={<AlertTriangle size={15} />} tone={staleCount + conflictCount > 0 ? 'warning' : 'positive'} />
+        {/* Bento row 2: summary tiles */}
+        <section className="mb-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <SummaryCard delay={120} label="Watching" value={items.length.toString()} detail="symbols in queue" icon={<Eye size={15} />} />
+          <SummaryCard delay={160} label="Needs attention" value={meaningfulCount.toString()} detail="unusual moves" icon={<Activity size={15} />} tone="accent" />
+          <SummaryCard delay={200} label="Market direction" value={items.length ? `${upCount}/${items.length}` : '—'} detail="symbols moving up" icon={upCount >= items.length / 2 ? <ArrowUpRight size={15} /> : <ArrowDownRight size={15} />} tone={upCount >= items.length / 2 ? 'positive' : 'negative'} />
+          <SummaryCard delay={240} label="Data quality" value={staleCount + conflictCount > 0 ? `${staleCount + conflictCount}` : 'Clear'} detail={staleCount + conflictCount > 0 ? 'items to review' : 'all feeds healthy'} icon={<AlertTriangle size={15} />} tone={staleCount + conflictCount > 0 ? 'warning' : 'positive'} />
         </section>
 
-        <section className="mb-4 rounded-xl border border-default bg-secondary/30 p-3 sm:p-4">
+        {/* Bento row 3: search */}
+        <section className="tile-in glass mb-4 rounded-3xl p-4 sm:p-5" style={{ animationDelay: '280ms' }}>
           <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2"><Filter size={14} className="text-muted" /><span className="text-xs font-semibold uppercase tracking-[0.15em] text-secondary">Add to your watchlist</span></div>
             <span className="text-[11px] text-muted">Search 20 simulated market symbols</span>
@@ -142,17 +155,17 @@ export default function App() {
           <SymbolSearch userId={userId.current} onAdded={fetchWatchlist} />
         </section>
 
-        {error && <div className="mb-4 flex items-center justify-between rounded-lg border border-[var(--negative)]/30 bg-[var(--negative)]/10 px-4 py-3"><p className="text-sm text-negative">{error}</p><button aria-label="Dismiss error" onClick={() => setError(null)} className="text-negative/70 hover:text-negative"><X size={15} /></button></div>}
+        {error && <div className="mb-4 flex items-center justify-between rounded-2xl border border-[var(--negative)]/30 bg-[var(--negative)]/10 px-4 py-3"><p className="text-sm text-negative">{error}</p><button aria-label="Dismiss error" onClick={() => setError(null)} className="text-negative/70 hover:text-negative"><X size={15} /></button></div>}
 
         {loading ? (
-          <div className="flex items-center justify-center rounded-xl border border-default bg-secondary/30 py-24"><RefreshCw size={18} className="animate-spin text-muted" /><span className="ml-2 text-sm text-muted">Building your attention queue…</span></div>
+          <div className="glass flex items-center justify-center rounded-3xl py-24"><RefreshCw size={18} className="animate-spin text-muted" /><span className="ml-2 text-sm text-muted">Building your attention queue…</span></div>
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-default bg-secondary/20 py-24 text-center"><EyeOff size={30} className="mb-4 text-muted" /><p className="text-sm text-secondary">Your queue is empty.</p><p className="mt-1 max-w-xs text-xs leading-5 text-muted">Search for a symbol above. We&apos;ll start its checkpoint at the price you add it.</p></div>
+          <div className="glass flex flex-col items-center justify-center rounded-3xl py-24 text-center"><EyeOff size={30} className="mb-4 text-muted" /><p className="text-sm text-secondary">Your queue is empty.</p><p className="mt-1 max-w-xs text-xs leading-5 text-muted">Search for a symbol above. We&apos;ll start its checkpoint at the price you add it.</p></div>
         ) : (
-          <section className="overflow-hidden rounded-xl border border-default bg-secondary/40 shadow-2xl shadow-black/10">
-            <div className="flex flex-col gap-3 border-b border-default bg-tertiary/50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-              <div><div className="flex items-center gap-3"><h3 className="text-sm font-semibold text-[var(--text-primary)]">Watchlist signals</h3><span className="rounded-full bg-[var(--bg-primary)] px-2 py-0.5 font-mono-num text-[10px] text-muted">{filteredItems.length}/{items.length}</span></div>{topMover && <p className="mt-1 text-[11px] text-muted">Top signal: <span className="font-mono-num text-secondary">{topMover.symbol}</span>{topMover.is_meaningful ? ' is outside its normal range' : ' is being monitored'}</p>}</div>
-              <div className="flex items-center gap-1 rounded-lg border border-default bg-[var(--bg-primary)] p-1">
+          <section className="tile-in glass overflow-hidden rounded-3xl" style={{ animationDelay: '320ms' }}>
+            <div className="flex flex-col gap-3 border-b border-subtle px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div><div className="flex items-center gap-3"><h3 className="text-sm font-semibold text-[var(--text-primary)]">Watchlist signals</h3><span className="rounded-full bg-white/[0.06] px-2 py-0.5 font-mono-num text-[10px] text-muted">{filteredItems.length}/{items.length}</span></div>{topMover && <p className="mt-1 text-[11px] text-muted">Top signal: <span className="font-mono-num text-secondary">{topMover.symbol}</span>{topMover.is_meaningful ? ' is outside its normal range' : ' is being monitored'}</p>}</div>
+              <div className="flex items-center gap-1 rounded-xl border border-subtle bg-white/[0.03] p-1">
                 <FilterButton active={filter === 'all'} onClick={() => setFilter('all')}>All</FilterButton>
                 <FilterButton active={filter === 'meaningful'} onClick={() => setFilter('meaningful')} count={meaningfulCount}>Attention</FilterButton>
                 <FilterButton active={filter === 'data-quality'} onClick={() => setFilter('data-quality')} count={staleCount + conflictCount}>Data quality</FilterButton>
@@ -169,11 +182,17 @@ export default function App() {
   );
 }
 
-function SummaryCard({ label, value, detail, icon, tone = 'neutral' }: { label: string; value: string; detail: string; icon: ReactNode; tone?: 'neutral' | 'accent' | 'positive' | 'negative' | 'warning' }) {
+function SummaryCard({ label, value, detail, icon, tone = 'neutral', delay = 0 }: { label: string; value: string; detail: string; icon: ReactNode; tone?: 'neutral' | 'accent' | 'positive' | 'negative' | 'warning'; delay?: number }) {
   const toneClass = { neutral: 'text-secondary', accent: 'text-accent', positive: 'text-positive', negative: 'text-negative', warning: 'text-[var(--warning)]' }[tone];
-  return <div className="rounded-xl border border-default bg-secondary/40 p-4"><div className={`mb-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-muted`}>{icon}{label}</div><div className={`font-mono-num text-2xl font-semibold ${toneClass}`}>{value}</div><div className="mt-1 text-[11px] text-muted">{detail}</div></div>;
+  return (
+    <div className="tile-in glass glass-hover rounded-3xl p-4 transition-colors sm:p-5" style={{ animationDelay: `${delay}ms` }}>
+      <div className="mb-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-muted">{icon}{label}</div>
+      <div className={`font-mono-num text-2xl font-semibold ${toneClass}`}>{value}</div>
+      <div className="mt-1 text-[11px] text-muted">{detail}</div>
+    </div>
+  );
 }
 
 function FilterButton({ active, onClick, children, count }: { active: boolean; onClick: () => void; children: ReactNode; count?: number }) {
-  return <button onClick={onClick} className={`rounded-md px-2.5 py-1.5 text-[11px] transition-colors ${active ? 'bg-tertiary text-[var(--text-primary)]' : 'text-muted hover:text-secondary'}`}>{children}{typeof count === 'number' && count > 0 && <span className="ml-1.5 font-mono-num text-[10px] text-accent">{count}</span>}</button>;
+  return <button onClick={onClick} className={`rounded-lg px-2.5 py-1.5 text-[11px] transition-colors ${active ? 'bg-white/[0.08] text-[var(--text-primary)]' : 'text-muted hover:text-secondary'}`}>{children}{typeof count === 'number' && count > 0 && <span className="ml-1.5 font-mono-num text-[10px] text-accent">{count}</span>}</button>;
 }

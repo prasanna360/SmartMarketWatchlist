@@ -85,7 +85,7 @@ export function SymbolSearch({ userId, onAdded }: Props) {
             }
           }}
           placeholder="Search symbol or company name…"
-          className="w-full bg-secondary border border-default rounded-md pl-9 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-muted focus:outline-none focus:border-[var(--accent)]/50 transition-colors"
+          className="w-full rounded-xl border border-subtle bg-white/[0.03] pl-9 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-muted focus:outline-none focus:border-[var(--accent)]/50 focus:bg-white/[0.05] transition-colors"
         />
         {error && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-negative flex items-center gap-1">
@@ -99,7 +99,7 @@ export function SymbolSearch({ userId, onAdded }: Props) {
       )}
 
       {showDropdown && (
-        <div className="absolute z-50 w-full mt-1 bg-secondary border border-default rounded-md shadow-2xl shadow-black/50 overflow-hidden">
+        <div className="glass absolute z-50 w-full mt-1.5 rounded-xl shadow-2xl shadow-black/50 overflow-hidden">
           {filtered.map((s) => (
             <button
               key={s.symbol}
@@ -108,7 +108,7 @@ export function SymbolSearch({ userId, onAdded }: Props) {
                 handleAdd(s.symbol);
               }}
               disabled={adding !== null}
-              className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-tertiary transition-colors text-left group disabled:opacity-50"
+              className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-white/[0.06] transition-colors text-left group disabled:opacity-50"
             >
               <div className="flex items-center gap-3">
                 <span className="font-mono-num text-sm font-semibold text-[var(--text-primary)]">

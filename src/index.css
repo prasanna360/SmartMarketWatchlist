@@ -204,3 +204,39 @@
   50% { opacity: 0.4; }
 }
 .blink { animation: blink 2s ease-in-out infinite; }
+
+
+/* Sector tag chip */
+.sector-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px 1px 5px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.sector-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+/* Footer legend pill */
+.footer-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  border-radius: 999px;
+}
+
+/* Highlighted key-metric tile */
+.tile-highlight {
+  border-color: rgba(125, 211, 252, 0.28) !important;
+  box-shadow:
+    0 1px 0 0 var(--glass-highlight) inset,
+    0 0 0 1px rgba(125, 211, 252, 0.1) inset,
+    0 24px 48px -24px rgba(0, 0, 0, 0.6),
+    0 0 32px -12px rgba(125, 211, 252, 0.25);
+}

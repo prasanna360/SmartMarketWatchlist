@@ -11,7 +11,7 @@ Instead of flagging "any move over X%" as important, this app compares each stoc
 - **Stale feed detection**: Frozen/delayed data feeds are surfaced, not hidden — and the score is penalized so a frozen feed can't falsely look like a big move
 - **Source conflict detection**: When two data sources disagree, the conflict is shown inline
 - **Volume spike detection**: Unusual volume adds to the attention score
-- **Trading terminal aesthetic**: Dark background, monospace tabular numbers, hairline dividers, colored left border on flagged rows
+- - **Liquid-glass bento dashboard**: Asymmetric bento grid of frosted-glass panels over a soft animated aurora backdrop, with a highlighted "needs attention" tile, per-row price sparklines, and color-coded sector tags/filters
 - **Auto-refresh**: Polls the API every 2.5 seconds, no page reload needed
 
 ## Setup

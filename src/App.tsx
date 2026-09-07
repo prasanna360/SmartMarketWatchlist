@@ -9,17 +9,21 @@ import {
   EyeOff,
   Filter,
   Info,
+  Minus,
   RefreshCw,
+  TrendingDown,
   TrendingUp,
   X,
 } from 'lucide-react';
 import { api, getUserId } from '@/api';
 import { SymbolSearch } from '@/components/SymbolSearch';
 import { WatchlistRow } from '@/components/WatchlistRow';
+import { getSectorColor } from '@/lib/sectorColors';
 import type { WatchlistItem } from '@/types';
 
 const POLL_INTERVAL = 2500;
 const MEANINGFUL_THRESHOLD = 2.0;
+const HISTORY_LENGTH = 20;
 type FilterMode = 'all' | 'meaningful' | 'data-quality';
 
 export default function App() {
@@ -31,10 +35,19 @@ export default function App() {
   const [removing, setRemoving] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [filter, setFilter] = useState<FilterMode>('all');
+  const [sectorFilter, setSectorFilter] = useState<string | null>(null);
+  const priceHistory = useRef<Record<string, number[]>>({});
+  const prevMeaningful = useRef<number | null>(null);
+  const [attentionTrend, setAttentionTrend] = useState<'up' | 'down' | 'flat'>('flat');
 
   const fetchWatchlist = useCallback(async () => {
     try {
       const res = await api.getWatchlist(userId.current);
+      res.items.forEach((item) => {
+        const hist = priceHistory.current[item.symbol] || [];
+        const next = [...hist, item.price].slice(-HISTORY_LENGTH);
+        priceHistory.current[item.symbol] = next;
+      });
       setItems(res.items);
       setError(null);
     } catch (err) {
@@ -79,12 +92,26 @@ export default function App() {
   const staleCount = items.filter((item) => item.is_stale).length;
   const conflictCount = items.filter((item) => item.source2_disagree).length;
   const upCount = items.filter((item) => item.pct_change >= 0).length;
+  const sectors = useMemo(() => Array.from(new Set(items.map((item) => item.sector))).sort(), [items]);
   const filteredItems = useMemo(() => {
-    if (filter === 'meaningful') return items.filter((item) => item.is_meaningful);
-    if (filter === 'data-quality') return items.filter((item) => item.is_stale || item.source2_disagree);
-    return items;
-  }, [filter, items]);
+    let result = items;
+    if (filter === 'meaningful') result = result.filter((item) => item.is_meaningful);
+    if (filter === 'data-quality') result = result.filter((item) => item.is_stale || item.source2_disagree);
+    if (sectorFilter) result = result.filter((item) => item.sector === sectorFilter);
+    return result;
+  }, [filter, sectorFilter, items]);
   const topMover = items[0];
+
+  useEffect(() => {
+    if (prevMeaningful.current === null) {
+      prevMeaningful.current = meaningfulCount;
+      return;
+    }
+    if (meaningfulCount > prevMeaningful.current) setAttentionTrend('up');
+    else if (meaningfulCount < prevMeaningful.current) setAttentionTrend('down');
+    else setAttentionTrend('flat');
+    prevMeaningful.current = meaningfulCount;
+  }, [meaningfulCount]);
 
   return (
     <div className="relative min-h-screen text-[var(--text-primary)]">
@@ -139,9 +166,9 @@ export default function App() {
         </section>
 
         {/* Bento row 2: summary tiles */}
-        <section className="mb-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <section className="mb-4 grid grid-cols-2 gap-4 lg:grid-cols-5">
           <SummaryCard delay={120} label="Watching" value={items.length.toString()} detail="symbols in queue" icon={<Eye size={15} />} />
-          <SummaryCard delay={160} label="Needs attention" value={meaningfulCount.toString()} detail="unusual moves" icon={<Activity size={15} />} tone="accent" />
+          <AttentionCard delay={160} value={meaningfulCount} trend={attentionTrend} />
           <SummaryCard delay={200} label="Market direction" value={items.length ? `${upCount}/${items.length}` : '—'} detail="symbols moving up" icon={upCount >= items.length / 2 ? <ArrowUpRight size={15} /> : <ArrowDownRight size={15} />} tone={upCount >= items.length / 2 ? 'positive' : 'negative'} />
           <SummaryCard delay={240} label="Data quality" value={staleCount + conflictCount > 0 ? `${staleCount + conflictCount}` : 'Clear'} detail={staleCount + conflictCount > 0 ? 'items to review' : 'all feeds healthy'} icon={<AlertTriangle size={15} />} tone={staleCount + conflictCount > 0 ? 'warning' : 'positive'} />
         </section>
@@ -171,12 +198,29 @@ export default function App() {
                 <FilterButton active={filter === 'data-quality'} onClick={() => setFilter('data-quality')} count={staleCount + conflictCount}>Data quality</FilterButton>
               </div>
             </div>
-            <div className="hidden items-center gap-4 border-b border-subtle px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted md:flex"><span className="flex-1">Symbol / signal</span><span className="w-24 text-right">Price</span><span className="w-24 text-right">Change</span><span className="w-20 text-right">Attention</span><span className="w-36">Data status</span><span className="w-[68px]" /></div>
-            {filteredItems.length > 0 ? filteredItems.map((item) => <WatchlistRow key={item.symbol} item={item} onAck={handleAck} onRemove={handleRemove} acking={acking} removing={removing} />) : <div className="px-5 py-14 text-center text-sm text-muted">Nothing matches this view right now.</div>}
+            {sectors.length > 1 && (
+              <div className="flex flex-wrap items-center gap-2 border-b border-subtle px-4 py-3 sm:px-5">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-muted">Sector</span>
+                <SectorChip label="All" active={sectorFilter === null} onClick={() => setSectorFilter(null)} />
+                {sectors.map((s) => (
+                  <SectorChip key={s} label={s} active={sectorFilter === s} onClick={() => setSectorFilter(s)} />
+                ))}
+              </div>
+            )}
+            <div className="hidden items-center gap-4 border-b border-subtle px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted md:flex"><span className="flex-1">Symbol / signal</span><span className="w-16 text-right">Trend</span><span className="w-24 text-right">Price</span><span className="w-24 text-right">Change</span><span className="w-20 text-right">Attention</span><span className="w-36">Data status</span><span className="w-[68px]" /></div>
+            {filteredItems.length > 0 ? filteredItems.map((item) => <WatchlistRow key={item.symbol} item={item} onAck={handleAck} onRemove={handleRemove} acking={acking} removing={removing} sparklineValues={priceHistory.current[item.symbol] || [item.price]} />) : <div className="px-5 py-14 text-center text-sm text-muted">Nothing matches this view right now.</div>}
           </section>
         )}
 
-        {items.length > 0 && <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 px-1 text-[11px] text-muted"><span className="flex items-center gap-1.5"><span className="h-3 w-0.5 bg-accent" />Meaningful: z-score ≥ {MEANINGFUL_THRESHOLD.toFixed(1)}</span><span className="flex items-center gap-1.5"><Eye size={11} />Seen resets the comparison point</span><span className="flex items-center gap-1.5"><RefreshCw size={10} />Updates every {POLL_INTERVAL / 1000}s</span></div>}
+        {items.length > 0 && (
+          <div className="mt-4 flex justify-center">
+            <div className="glass footer-pill flex-wrap justify-center text-[11px] text-muted">
+              <span className="flex items-center gap-1.5"><span className="h-3 w-0.5 bg-accent" />Meaningful: z-score ≥ {MEANINGFUL_THRESHOLD.toFixed(1)}</span>
+              <span className="flex items-center gap-1.5"><Eye size={11} />Seen resets the comparison point</span>
+              <span className="flex items-center gap-1.5"><RefreshCw size={10} />Updates every {POLL_INTERVAL / 1000}s</span>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
@@ -190,6 +234,38 @@ function SummaryCard({ label, value, detail, icon, tone = 'neutral', delay = 0 }
       <div className={`font-mono-num text-2xl font-semibold ${toneClass}`}>{value}</div>
       <div className="mt-1 text-[11px] text-muted">{detail}</div>
     </div>
+  );
+}
+
+function AttentionCard({ value, trend, delay = 0 }: { value: number; trend: 'up' | 'down' | 'flat'; delay?: number }) {
+  const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus;
+  const trendColor = trend === 'up' ? 'text-negative' : trend === 'down' ? 'text-positive' : 'text-muted';
+  return (
+    <div className="tile-in tile-highlight glass col-span-2 rounded-3xl p-4 transition-colors sm:p-5 lg:col-span-1" style={{ animationDelay: `${delay}ms` }}>
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-muted"><Activity size={15} className="text-accent" />Needs attention</div>
+        <TrendIcon size={13} className={trendColor} />
+      </div>
+      <div className="font-mono-num text-3xl font-semibold text-accent">{value}</div>
+      <div className="mt-1 text-[11px] text-muted">unusual moves right now</div>
+    </div>
+  );
+}
+
+function SectorChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  const color = label === 'All' ? null : getSectorColor(label);
+  return (
+    <button
+      onClick={onClick}
+      className="sector-tag transition-colors"
+      style={{
+        background: active ? (color ? color.bg : 'rgba(255,255,255,0.08)') : 'rgba(255,255,255,0.03)',
+        color: active ? (color ? color.text : 'var(--text-primary)') : 'var(--text-muted)',
+      }}
+    >
+      {color && <span className="sector-dot" style={{ background: color.dot }} />}
+      {label}
+    </button>
   );
 }
 
